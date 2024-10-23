@@ -42,13 +42,11 @@ app.get('/Bazarcom/info/:id', async (req, res) => {
 app.post('/Bazarcom/purchase/:id', async (req, res) => {
     try {
         const idParam = req.params.id;
-        const response = await axios.get('http://order:1002/OrderServer/purchase', {
-            params: { idParam }
-        });
+        const response = await axios.post(`http://localhost:1002/OrderServer/purchase/${idParam}`);
         
         res.json(response.data); // Send the response back to the client
     } catch (error) {
-        console.error('Error purchasing book:', error);// Send error response to the client
-        res.status(404).json({ error: ' Not Found!' }); 
+        console.error('Error purchasing book:', error); // Log the error
+        res.status(500).json({ error: 'Failed to purchase item' });
     }
 });

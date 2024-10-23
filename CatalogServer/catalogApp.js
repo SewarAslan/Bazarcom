@@ -48,18 +48,28 @@ app.get('/CatalogServer/query', async (req, res) => {
     }
 });
 
-//search books by id
-/*app.get('/CatalogServer/query', async (req, res) => {
+// Handle purchase and update stock
+app.put('/CatalogServer/updateStock/:itemNumber', async (req, res) => {
     try {
-      
-      if(searchBy=="id"){
-       
-      
-    }
+        const itemNumber = req.params.itemNumber;
+        const item = data.find(book => book.id === itemNumber);
+
+        // Check if the item exists
+        if (!item) {
+            return res.status(404).json({ message: 'Item not found' });
+        }
+
+        // Update stock (decrement by 1)
+        if (item.stock > 0) {
+            item.stock -= 1;
+            res.json({ message: `Stock updated successfully. Remaining stock: ${item.stock}`, item });
+        } else {
+            // Item is out of stock
+            res.status(400).json({ error: 'Item is out of stock', item });
+        }
+
     } catch (error) {
-        console.error(error);
-        console.error('Error fetching data from catalog service:', error);// Send error response to the client
-        res.status(404).json({ error: ' Not Found!' }); 
+        console.error('Error updating stock:', error);
+        res.status(500).json({ error: 'Failed to update stock. Please try again later.' });
     }
 });
-*/
