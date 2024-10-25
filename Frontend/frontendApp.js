@@ -3,8 +3,8 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
-app.listen(1000, () => {
-    console.log(`frontend is running on port 1000`);
+app.listen(2000, () => {
+    console.log(`frontend is running on port 2000`);
 });
 
 //search books by topic
@@ -12,14 +12,15 @@ app.get('/Bazarcom/Search/:topic', async (req, res) => {
     try {
         const topicParam = req.params.topic;
         const searchBy = "topic";
-        const response = await axios.get('http://localhost:1001/CatalogServer/query', {
-            params: { topicParam, searchBy }
+        const opertaion="search";
+        const response = await axios.get('http://catalog:2001/CatalogServer/query', {
+            params: { topicParam, searchBy ,opertaion}
         });
         res.json(response.data); // Send the response back to the client
     } catch (error) {
-        console.error(error);
-        console.error('Error fetching data from catalog service:', error);// Send error response to the client
-        res.status(404).json({ error: ' Not Found!' }); 
+        //console.error(error);
+        console.error('Error fetching data from database:', error);// Send error response to the client
+        res.status(404).json({ error: 'Error fetching data from database, item is not found'}); 
     }
 });
 
@@ -28,13 +29,14 @@ app.get('/Bazarcom/info/:id', async (req, res) => {
     try {
         const idParam = req.params.id;
         const searchBy = "id";
-        const response = await axios.get('http://localhost:1001/CatalogServer/query', {
-            params: { idParam, searchBy }
+        const opertaion="info";
+        const response = await axios.get('http://catalog:2001/CatalogServer/query', {
+            params: { idParam, searchBy, opertaion }
         });
         res.json(response.data); // Send the response back to the client
     } catch (error) {
-        console.error('Error fetching data from catalog service:', error);// Send error response to the client
-        res.status(404).json({ error: ' Not Found!' }); 
+        console.error('Error fetching data from database:', error);// Send error response to the client
+        res.status(404).json({ error: ' Error fetching data from database, item is not found' }); 
     }
 });
 
@@ -42,11 +44,11 @@ app.get('/Bazarcom/info/:id', async (req, res) => {
 app.post('/Bazarcom/purchase/:id', async (req, res) => {
     try {
         const idParam = req.params.id;
-        const response = await axios.post(`http://localhost:1002/OrderServer/purchase/${idParam}`);
+        const response = await axios.post(`http://order:2002/OrderServer/purchase/${idParam}`);
         
         res.json(response.data); // Send the response back to the client
     } catch (error) {
         console.error('Error purchasing book:', error); // Log the error
-        res.status(500).json({ error: 'Failed to purchase item' });
+        res.status(404).json({ error: 'Failed to purchase item' });
     }
 });

@@ -1,3 +1,3 @@
-let orders =[];
+let ordersList =[];
 
-export default orders;
+module.exports = ordersList;
