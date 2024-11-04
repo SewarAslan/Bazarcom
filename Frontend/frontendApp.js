@@ -6,7 +6,26 @@ app.use(express.json());
 //for cache
 const CACHE_SIZE = 10; // Maximum cache size
 const cache = new Map(); // in-memory cache is integrated into the front-end 
+let catalogReplicaIndex = 0;
+let orderReplicaIndex = 0;
 
+// Helper function to get catalog replica URL
+function getCatalogReplicaURL() {
+    const replicas = ['http://catalog:2001', 'http://catalogReplica:2001'];
+    const replica = replicas[catalogReplicaIndex];
+    catalogReplicaIndex = (catalogReplicaIndex + 1) % replicas.length;
+    //test which replica catch the request
+    console.log(`Using ${replica}`); // Log the selected replica
+    return replica;
+}
+
+// Helper function to get order replica URL
+function getOrderReplicaURL() {
+    const replicas = ['http://order:2002', 'http://orderReplica:2002'];
+    const replica = replicas[orderReplicaIndex];
+    orderReplicaIndex = (orderReplicaIndex + 1) % replicas.length;
+    return replica;
+}
 
 // checks the cache first if data in it
 function getFromCache(key) {
@@ -38,6 +57,9 @@ app.listen(2000, () => {
 app.get('/Bazarcom/Search/:topic', async (req, res) => {
     const topicParam = req.params.topic;
     const cacheKey = `topic-${topicParam}`;
+    const catalogURL = getCatalogReplicaURL();
+    //test url of replica
+    console.log(catalogURL);
 
     // At first, Check cache 
     const cachedData = getFromCache(cacheKey);
@@ -52,7 +74,7 @@ app.get('/Bazarcom/Search/:topic', async (req, res) => {
             try {
         const searchBy = "topic";
         const operation = "search";
-        const response = await axios.get('http://localhost:2001/CatalogServer/query', {
+        const response = await axios.get(`${catalogURL}/CatalogServer/query`, {
             params: { topicParam, searchBy, operation }
         });
 
@@ -70,6 +92,9 @@ app.get('/Bazarcom/Search/:topic', async (req, res) => {
 app.get('/Bazarcom/info/:id', async (req, res) => {
     const idParam = req.params.id;
     const cacheKey = `id-${idParam}`;
+    const catalogURL = getCatalogReplicaURL();
+    //test url of replica
+    console.log(catalogURL);
 
     // Check cache first
     const cachedData = getFromCache(cacheKey);
@@ -82,7 +107,7 @@ app.get('/Bazarcom/info/:id', async (req, res) => {
             try {
         const searchBy = "id";
         const operation = "info";
-        const response = await axios.get('http://localhost:2001/CatalogServer/query', {
+        const response = await axios.get(`${catalogURL}/CatalogServer/query`, {
             params: { idParam, searchBy, operation }
         });
 
@@ -100,11 +125,11 @@ app.get('/Bazarcom/info/:id', async (req, res) => {
 app.post('/Bazarcom/purchase/:id', async (req, res) => {
     try {
         const idParam = req.params.id;
-
+        const orderURL = getOrderReplicaURL() ;
         // Invalidate cache related to this book ID/ delete item from cache
         cache.delete(`id-${idParam}`);
 
-        const response = await axios.post(`http://localhost:2002/OrderServer/purchase/${idParam}`);
+        const response = await axios.post(`${orderURL}/OrderServer/purchase/${idParam}`);
         res.json(response.data);
     } catch (error) {
         console.error('Error purchasing book:', error);
