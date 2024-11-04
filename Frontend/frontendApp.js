@@ -3,52 +3,111 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
+//for cache
+const CACHE_SIZE = 10; // Maximum cache size
+const cache = new Map(); // in-memory cache is integrated into the front-end 
+
+
+// checks the cache first if data in it
+function getFromCache(key) {
+    if (cache.has(key)) {
+        // Move new item to the end to mark it as recently used/ we used LRU cache replacement policy
+        const value = cache.get(key);
+        cache.delete(key);
+        cache.set(key, value);
+        return value;
+    }
+    return null;
+}
+
+// set new data in cache
+function setCache(key, value) {
+    if (cache.size >= CACHE_SIZE) {
+        // Remove the first (least recently used) item from the cache according 
+        const firstKey = cache.keys().next().value;
+        cache.delete(firstKey);
+    }
+    cache.set(key, value);
+}
+
 app.listen(2000, () => {
-    console.log(`frontend is running on port 2000`);
+    console.log(`Frontend is running on port 2000`);
 });
 
-//search books by topic
+// Search books by topic with caching
 app.get('/Bazarcom/Search/:topic', async (req, res) => {
-    try {
-        const topicParam = req.params.topic;
+    const topicParam = req.params.topic;
+    const cacheKey = `topic-${topicParam}`;
+
+    // At first, Check cache 
+    const cachedData = getFromCache(cacheKey);
+    //data is in cache
+    if (cachedData) {
+        console.log('In Cache');
+        return res.json(cachedData);
+    }
+    //it is new data, so add it to cache
+    else{
+        console.log('Not in cache, so add it');
+            try {
         const searchBy = "topic";
-        const opertaion="search";
-        const response = await axios.get('http://catalog:2001/CatalogServer/query', {
-            params: { topicParam, searchBy ,opertaion}
+        const operation = "search";
+        const response = await axios.get('http://localhost:2001/CatalogServer/query', {
+            params: { topicParam, searchBy, operation }
         });
-        res.json(response.data); // Send the response back to the client
+
+        setCache(cacheKey, response.data); // Store result in cache
+        res.json(response.data);
     } catch (error) {
-        //console.error(error);
-        console.error('Error fetching data from database:', error);// Send error response to the client
-        res.status(404).json({ error: 'Error fetching data from database, item is not found'}); 
+        console.error('Error fetching data from catalog server:', error);
+        res.status(404).json({ error: 'Item not found' });
     }
+    }
+
 });
 
-//search books by id
+// Get book info by ID with caching
 app.get('/Bazarcom/info/:id', async (req, res) => {
-    try {
-        const idParam = req.params.id;
-        const searchBy = "id";
-        const opertaion="info";
-        const response = await axios.get('http://catalog:2001/CatalogServer/query', {
-            params: { idParam, searchBy, opertaion }
-        });
-        res.json(response.data); // Send the response back to the client
-    } catch (error) {
-        console.error('Error fetching data from database:', error);// Send error response to the client
-        res.status(404).json({ error: ' Error fetching data from database, item is not found' }); 
+    const idParam = req.params.id;
+    const cacheKey = `id-${idParam}`;
+
+    // Check cache first
+    const cachedData = getFromCache(cacheKey);
+    if (cachedData) {
+        console.log('In Cache');
+        return res.json(cachedData);
     }
+    else{
+        console.log('Not in cache, so add it');
+            try {
+        const searchBy = "id";
+        const operation = "info";
+        const response = await axios.get('http://localhost:2001/CatalogServer/query', {
+            params: { idParam, searchBy, operation }
+        });
+
+        setCache(cacheKey, response.data); // Store result in cache
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error fetching data from catalog server:', error);
+        res.status(404).json({ error: 'Item not found' });
+    }
+    }
+
 });
 
-//make purchase 
+// Make purchase and invalidate item in cache for consistency (here we have a write operation)
 app.post('/Bazarcom/purchase/:id', async (req, res) => {
     try {
         const idParam = req.params.id;
-        const response = await axios.post(`http://order:2002/OrderServer/purchase/${idParam}`);
-        
-        res.json(response.data); // Send the response back to the client
+
+        // Invalidate cache related to this book ID/ delete item from cache
+        cache.delete(`id-${idParam}`);
+
+        const response = await axios.post(`http://localhost:2002/OrderServer/purchase/${idParam}`);
+        res.json(response.data);
     } catch (error) {
-        console.error('Error purchasing book:', error); // Log the error
+        console.error('Error purchasing book:', error);
         res.status(404).json({ error: 'Failed to purchase item' });
     }
 });
