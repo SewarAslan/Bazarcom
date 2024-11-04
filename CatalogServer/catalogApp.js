@@ -78,7 +78,6 @@ app.put('/CatalogServer/updateStock/:itemNumber', async (req, res) => {
            
             try {
                 await axios.post('http://frontend:2000/invalidateCache', { id: itemNumber });
-                console.log(`Cache invalidated for item ${itemNumber}`);
             } catch (error) {
                 console.error('Error notifying cache invalidation:', error);
             }
