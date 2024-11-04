@@ -14,8 +14,10 @@ function getCatalogReplicaURL() {
     const replicas = ['http://catalog:2001', 'http://catalogReplica:2001'];
     const replica = replicas[catalogReplicaIndex];
     catalogReplicaIndex = (catalogReplicaIndex + 1) % replicas.length;
+
     //test which replica catch the request
     console.log(`Using ${replica}`); // Log the selected replica
+
     return replica;
 }
 
@@ -58,7 +60,10 @@ app.get('/Bazarcom/Search/:topic', async (req, res) => {
     const topicParam = req.params.topic;
     const cacheKey = `topic-${topicParam}`;
     const catalogURL = getCatalogReplicaURL();
+
     //test url of replica
+
+
     console.log(catalogURL);
 
     // At first, Check cache 
@@ -93,8 +98,10 @@ app.get('/Bazarcom/info/:id', async (req, res) => {
     const idParam = req.params.id;
     const cacheKey = `id-${idParam}`;
     const catalogURL = getCatalogReplicaURL();
+
     //test url of replica
     console.log(catalogURL);
+
 
     // Check cache first
     const cachedData = getFromCache(cacheKey);
