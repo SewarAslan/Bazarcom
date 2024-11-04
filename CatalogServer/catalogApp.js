@@ -75,6 +75,13 @@ app.put('/CatalogServer/updateStock/:itemNumber', async (req, res) => {
             console.log(`Stock updated successfully. Remaining stock: ${item.stock}.`);
             console.log('Item:',JSON.stringify(item));
             res.json({ message: `Stock updated successfully. Remaining stock: ${item.stock}`, item });
+           
+            try {
+                await axios.post('http://frontend:2000/invalidateCache', { id: itemNumber });
+                console.log(`Cache invalidated for item ${itemNumber}`);
+            } catch (error) {
+                console.error('Error notifying cache invalidation:', error);
+            }
 
         } else {
             // Item is out of stock
