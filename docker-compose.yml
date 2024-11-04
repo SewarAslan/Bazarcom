@@ -7,7 +7,17 @@ services:
     ports:
       - "2001:2001"
     networks:
-      - bazarcom-network
+      - bazarcom-network  
+
+
+  catalogReplica:
+    image: catalog-server
+    build:
+      context: ./CatalogServer
+    ports:
+      - "2003:2001"
+    networks:
+      - bazarcom-network    
 
   order:
     image: order-server
@@ -17,6 +27,16 @@ services:
       - "2002:2002"
     networks:
       - bazarcom-network
+
+
+  orderReplica:
+    image: order-server
+    build:
+      context: ./OrderServer
+    ports:
+      - "2004:2002"
+    networks:
+      - bazarcom-network    
 
   frontend:
     image: frontend
