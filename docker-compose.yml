@@ -1,49 +1,47 @@
 version: '3'
 services:
-  catalog:
-    image: catalog-server
-    build:
-      context: ./CatalogServer
-    ports:
-      - "2001:2001"
-    networks:
-      - bazarcom-network  
-
-
-  catalogReplica:
-    image: catalog-server
-    build:
-      context: ./CatalogServer
-    ports:
-      - "2003:2001"
-    networks:
-      - bazarcom-network    
-
-  order:
-    image: order-server
-    build:
-      context: ./OrderServer
-    ports:
-      - "2002:2002"
-    networks:
-      - bazarcom-network
-
-
-  orderReplica:
-    image: order-server
-    build:
-      context: ./OrderServer
-    ports:
-      - "2004:2002"
-    networks:
-      - bazarcom-network    
-
   frontend:
-    image: frontend
+    image: frontend  # Reuse the existing frontend image
     build:
       context: ./Frontend
     ports:
       - "2000:2000"
+    networks:
+      - bazarcom-network
+
+  catalog:
+    image: catalog-server  # Reuse the existing catalog-server image
+    build:
+      context: ./Catalog
+    ports:
+      - "2001:2001"  # Host port 2001 -> Catalog internal port 2001
+    networks:
+      - bazarcom-network
+
+  catalogReplica:
+    image: catalog-server  # Reuse the existing catalog-server image
+    build:
+      context: ./CatalogReplica  # Separate folder for any replica-specific configs
+    ports:
+      - "2003:2001"  # Host port 2003 -> CatalogReplica internal port 2001
+    networks:
+      - bazarcom-network
+
+  order:
+    image: order-server  # Reuse the existing order-server image
+    build:
+      context: ./Order
+    ports:
+      - "2002:2002"  # Host port 2002 -> Order internal port 2002
+    networks:
+      - bazarcom-network
+
+  orderReplica:
+    image: order-server  # Reuse the existing order-server image
+    build:
+      context: ./OrderReplica  # Separate folder for any replica-specific configs
+    ports:
+      - "2004:2002"  # Host port 2004 -> OrderReplica internal port 2002
     networks:
       - bazarcom-network
 
