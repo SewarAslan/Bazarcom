@@ -9,6 +9,7 @@ app.listen(2001, () => {
 });
 //search books by topic
 app.get('/CatalogServer/query', async (req, res) => {
+    console.log('iam in catalog originn');
     try {
        
       const searchBy=req.query.searchBy;  
@@ -38,12 +39,15 @@ app.get('/CatalogServer/query', async (req, res) => {
             const bookInfo = filteredDB.map(book => {
                 return { title: book.title, quantity: book.stock,price: book.cost };
             });
-            res.json(bookInfo);  // Return only id and topic
 
             if(opertaion=="info"){
                 console.log("Fetched successfully");
                 console.log(bookInfo);
             }
+
+            res.json(bookInfo);  // Return only id and topic
+
+            
            
         } else {
             res.status(404).json({ message: 'No books has this id', cause: 'not found' });
@@ -72,15 +76,22 @@ app.put('/CatalogServer/updateStock/:itemNumber', async (req, res) => {
         if (item.stock > 0) {
             item.stock -= 1;
 
+
             console.log(`Stock updated successfully. Remaining stock: ${item.stock}.`);
             console.log('Item:',JSON.stringify(item));
             res.json({ message: `Stock updated successfully. Remaining stock: ${item.stock}`, item });
            
-            try {
+              // Notify other replicas about the stock update
+              try {
+                // Notify catalog replica about the update
+                await axios.put(`http://catalogReplica:2001/CatalogServer/updateReplicaStock/${itemNumber}`, { stock: item.stock });
+
+                // Notify the frontend about cache invalidation
                 await axios.post('http://frontend:2000/invalidateCache', { id: itemNumber });
             } catch (error) {
-                console.error('Error notifying cache invalidation:', error);
+                console.error('Error notifying replicas or cache invalidation:', error);
             }
+
 
         } else {
             // Item is out of stock
@@ -97,3 +108,12 @@ app.put('/CatalogServer/updateReplicaStock/:itemNumber', (req, res) => {
     const itemNumber = req.params.itemNumber;
     const { stock } = req.body;
     const item = data.find(book => book.id === itemNumber);
+
+    if (item) {
+        item.stock = stock;
+        console.log(`origin stock updated for item ${itemNumber}. New stock: ${item.stock}`);
+        res.json({ message: `Stock updated for item ${itemNumber}` });
+    } else {
+        res.status(404).json({ message: 'Item not found on replica' });
+    }
+});

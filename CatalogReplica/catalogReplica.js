@@ -9,6 +9,7 @@ app.listen(2001, () => {
 });
 //search books by topic
 app.get('/CatalogServer/query', async (req, res) => {
+    console.log('iam in catalogReplica');
     try {
        
       const searchBy=req.query.searchBy;  
@@ -76,12 +77,18 @@ app.put('/CatalogServer/updateStock/:itemNumber', async (req, res) => {
             console.log('Item:',JSON.stringify(item));
             res.json({ message: `Stock updated successfully. Remaining stock: ${item.stock}`, item });
            
+            // Notify other replicas about the stock update
             try {
+                // Notify catalog replica about the update
+                await axios.put(`http://catalog:2001/CatalogServer/updateReplicaStock/${itemNumber}`, { stock: item.stock });
+
+                // Notify the frontend about cache invalidation
                 await axios.post('http://frontend:2000/invalidateCache', { id: itemNumber });
             } catch (error) {
-                console.error('Error notifying cache invalidation:', error);
+                console.error('Error notifying replicas or cache invalidation:', error);
             }
 
+ 
         } else {
             // Item is out of stock
             res.status(500).json({ error: 'Item is out of stock', item });

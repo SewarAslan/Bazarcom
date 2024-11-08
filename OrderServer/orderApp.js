@@ -10,6 +10,8 @@ app.listen(2002, () => {
 });
 
 app.post('/OrderServer/purchase/:itemNumber', async (req, res) => {
+    console.log('iam in order originn');
+
      const itemNumber = req.params.itemNumber;
      const opertaion="order";
     try {
@@ -35,7 +37,7 @@ app.post('/OrderServer/purchase/:itemNumber', async (req, res) => {
             
            // Print messages in sequence
            console.log(`Successfully purchased item: ${item.title}`);
-           console.log('The orders list:');
+           console.log('The orders list in origin:');
            console.log(JSON.stringify(ordersList, null, 2));
 
            res.json({ message: `Successfully purchased item: ${item.title}`, remainingStock: updateResponse.data.item.stock, ordersList: ordersList });

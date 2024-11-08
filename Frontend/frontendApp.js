@@ -74,6 +74,7 @@ app.get('/Bazarcom/Search/:topic', async (req, res) => {
     //data is in cache
     if (cachedData) {
         console.log('In Cache - Cache Hit');
+        console.log(cachedData);
         return res.json(cachedData);
     }
     //it is new data, so add it to cache
@@ -110,6 +111,7 @@ app.get('/Bazarcom/info/:id', async (req, res) => {
     const cachedData = getFromCache(cacheKey);
     if (cachedData) {
         console.log('In Cache - Cache Hit');
+        console.log(cachedData);
         return res.json(cachedData);
     }
     else{
@@ -139,6 +141,7 @@ app.post('/Bazarcom/purchase/:id', async (req, res) => {
         // Invalidate cache related to this book ID/ delete item from cache
         //cache.delete(`id-${idParam}`);
         //console.log(`Done deleted item: id-${idParam}`);
+        console.log('The url: '+orderURL);
 
         const response = await axios.post(`${orderURL}/OrderServer/purchase/${idParam}`);
         res.json(response.data);

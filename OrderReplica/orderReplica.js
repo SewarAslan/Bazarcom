@@ -10,10 +10,12 @@ app.listen(2002, () => {
 });
 
 app.post('/OrderServer/purchase/:itemNumber', async (req, res) => {
+    console.log('iam in orderReplica');
+
      const itemNumber = req.params.itemNumber;
      const opertaion="order";
     try {
-        const response = await axios.get('http://catalog:2001/CatalogServer/query', {
+        const response = await axios.get('http://catalogReplica:2001/CatalogServer/query', {
             params: { searchBy: 'id', idParam: itemNumber, opertaion:opertaion }
         });
             
@@ -22,7 +24,7 @@ app.post('/OrderServer/purchase/:itemNumber', async (req, res) => {
        
         if (item.quantity > 0) {
             
-            const updateResponse = await axios.put(`http://catalog:2001/CatalogServer/updateStock/${itemNumber}`);
+            const updateResponse = await axios.put(`http://catalogReplica:2001/CatalogServer/updateStock/${itemNumber}`);
 
             // Add to ordersList
             const order = {
@@ -35,7 +37,7 @@ app.post('/OrderServer/purchase/:itemNumber', async (req, res) => {
             
            // Print messages in sequence
            console.log(`Successfully purchased item: ${item.title}`);
-           console.log('The orders list:');
+           console.log('The orders list in replica:');
            console.log(JSON.stringify(ordersList, null, 2));
 
            res.json({ message: `Successfully purchased item: ${item.title}`, remainingStock: updateResponse.data.item.stock, ordersList: ordersList });
