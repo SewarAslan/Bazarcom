@@ -1,6 +1,6 @@
 FROM node:latest
 
-WORKDIR  /order_server
+WORKDIR  /order_replica
 
 
 COPY  package.json package-lock.json ./

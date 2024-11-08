@@ -1,7 +1,7 @@
 version: '3'
 services:
   frontend:
-    image: frontend  # Reuse the existing frontend image
+    image: frontend
     build:
       context: ./Frontend
     ports:
@@ -10,36 +10,36 @@ services:
       - bazarcom-network
 
   catalog:
-    image: catalog-server  # Reuse the existing catalog-server image
+    image: catalog-server 
     build:
-      context: ./Catalog
+      context: ./CatalogServer
     ports:
       - "2001:2001"  # Host port 2001 -> Catalog internal port 2001
     networks:
       - bazarcom-network
 
   catalogReplica:
-    image: catalog-server  # Reuse the existing catalog-server image
+    image: catalog-replica
     build:
-      context: ./CatalogReplica  # Separate folder for any replica-specific configs
+      context: ./CatalogReplica 
     ports:
       - "2003:2001"  # Host port 2003 -> CatalogReplica internal port 2001
     networks:
       - bazarcom-network
 
   order:
-    image: order-server  # Reuse the existing order-server image
+    image: order-server  
     build:
-      context: ./Order
+      context: ./OrderServer
     ports:
       - "2002:2002"  # Host port 2002 -> Order internal port 2002
     networks:
       - bazarcom-network
 
   orderReplica:
-    image: order-server  # Reuse the existing order-server image
+    image: order-replica  
     build:
-      context: ./OrderReplica  # Separate folder for any replica-specific configs
+      context: ./OrderReplica 
     ports:
       - "2004:2002"  # Host port 2004 -> OrderReplica internal port 2002
     networks:

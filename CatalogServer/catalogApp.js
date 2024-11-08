@@ -97,12 +97,3 @@ app.put('/CatalogServer/updateReplicaStock/:itemNumber', (req, res) => {
     const itemNumber = req.params.itemNumber;
     const { stock } = req.body;
     const item = data.find(book => book.id === itemNumber);
-
-    if (item) {
-        item.stock = stock;
-        console.log(`Replica stock updated for item ${itemNumber}. New stock: ${item.stock}`);
-        res.json({ message: `Stock updated for item ${itemNumber}` });
-    } else {
-        res.status(404).json({ message: 'Item not found on replica' });
-    }
-});
