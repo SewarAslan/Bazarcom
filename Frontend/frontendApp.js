@@ -12,7 +12,7 @@ let orderReplicaIndex = 0;
 
 // function to get catalog replica URL
 function getCatalogReplicaURL() {
-    const replicas = ['http://catalog:2001', 'http://catalogReplica:2001'];
+    const replicas = ['http://catalog:1001', 'http://catalogReplica:1001'];
     const replica = replicas[catalogReplicaIndex];
     catalogReplicaIndex = (catalogReplicaIndex + 1) % replicas.length;
 
@@ -24,7 +24,7 @@ function getCatalogReplicaURL() {
 
 // function to get order replica URL
 function getOrderReplicaURL() {
-    const replicas = ['http://order:2002', 'http://orderReplica:2002'];
+    const replicas = ['http://order:1002', 'http://orderReplica:1002'];
     const replica = replicas[orderReplicaIndex];
     orderReplicaIndex = (orderReplicaIndex + 1) % replicas.length;
 
@@ -56,8 +56,8 @@ function setCache(key, value) {
     cache.set(key, value);
 }
 
-app.listen(2000, () => {
-    console.log(`Frontend is running on port 2000`);
+app.listen(1000, () => {
+    console.log(`Frontend is running on port 1000`);
 });
 
 // Search books by topic with caching and replication
@@ -120,8 +120,9 @@ app.get('/Bazarcom/info/:id', async (req, res) => {
         const searchBy = "id";
         const operation = "info";
         const response = await axios.get(`${catalogURL}/CatalogServer/query`, {
-            params: { idParam, searchBy, operation }
-        });
+        params: { idParam, searchBy, operation },
+    });
+
 
         setCache(cacheKey, response.data); // Store result in cache
         res.json(response.data);
@@ -143,7 +144,10 @@ app.post('/Bazarcom/purchase/:id', async (req, res) => {
         //console.log(`Done deleted item: id-${idParam}`);
         console.log('The url: '+orderURL);
 
-        const response = await axios.post(`${orderURL}/OrderServer/purchase/${idParam}`);
+        const response = await axios.post(`${orderURL}/OrderServer/purchase/${idParam}`, {
+            orderURL  // Send orderURL in the body 
+        });
+        
         res.json(response.data);
     } catch (error) {
         console.error('Error purchasing book:', error);

@@ -5,17 +5,34 @@ const axios = require('axios');
 const app = express();
 app.use(express.json());
 
-app.listen(2002, () => {
-    console.log('Order server is running on port 2002');
+app.listen(1002, () => {
+    console.log('Order server is running on port 1002');
 });
 
 app.post('/OrderServer/purchase/:itemNumber', async (req, res) => {
-    console.log('iam in order originn');
+    console.log('In orderServer ...');
 
      const itemNumber = req.params.itemNumber;
      const opertaion="order";
+
+      orderurl=req.body.orderURL;
+      catalogURl="";
+
+      console.log(orderurl);
+      console.log("item#= "+itemNumber);
+
+     if(orderurl=="http://order:1002"){
+        catalogURl="http://catalog:1001";
+        console.log(catalogURl);
+     }
+        
+     else if(orderurl=="http://orderReplica:1002"){
+        catalogURl="http://catalogReplica:1001";
+        console.log("replica: "+catalogURl);
+     }
+
     try {
-        const response = await axios.get('http://catalog:2001/CatalogServer/query', {
+        const response = await axios.get(`${catalogURl}/CatalogServer/query`, {
             params: { searchBy: 'id', idParam: itemNumber, opertaion:opertaion }
         });
             
@@ -24,7 +41,9 @@ app.post('/OrderServer/purchase/:itemNumber', async (req, res) => {
        
         if (item.quantity > 0) {
             
-            const updateResponse = await axios.put(`http://catalog:2001/CatalogServer/updateStock/${itemNumber}`);
+            const updateResponse = await axios.put(`${catalogURl}/CatalogServer/updateStock/${itemNumber}`,{
+                catalogURl
+            });
 
             // Add to ordersList
             const order = {

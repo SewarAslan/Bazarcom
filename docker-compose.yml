@@ -5,7 +5,7 @@ services:
     build:
       context: ./Frontend
     ports:
-      - "2000:2000"
+      - "1000:1000"
     networks:
       - bazarcom-network
 
@@ -14,16 +14,16 @@ services:
     build:
       context: ./CatalogServer
     ports:
-      - "2001:2001"  # Host port 2001 -> Catalog internal port 2001
+      - "1001:1001"  # Host port 2001 -> Catalog internal port 2001
     networks:
       - bazarcom-network
 
   catalogReplica:
-    image: catalog-replica
+    image: catalog-server 
     build:
-      context: ./CatalogReplica 
+      context: ./CatalogServer 
     ports:
-      - "2003:2001"  # Host port 2003 -> CatalogReplica internal port 2001
+      - "1003:1001"  # Host port 2003 -> CatalogReplica internal port 2001
     networks:
       - bazarcom-network
 
@@ -32,16 +32,16 @@ services:
     build:
       context: ./OrderServer
     ports:
-      - "2002:2002"  # Host port 2002 -> Order internal port 2002
+      - "1002:1002"  # Host port 2002 -> Order internal port 2002
     networks:
       - bazarcom-network
 
   orderReplica:
-    image: order-replica  
+    image: order-server   
     build:
-      context: ./OrderReplica 
+      context: ./OrderServer 
     ports:
-      - "2004:2002"  # Host port 2004 -> OrderReplica internal port 2002
+      - "1004:1002"  # Host port 2004 -> OrderReplica internal port 2002
     networks:
       - bazarcom-network
 
